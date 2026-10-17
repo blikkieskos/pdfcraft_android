@@ -1,7 +1,75 @@
-# PDFCraft
+<div align="center">
 
-> 📱 **This fork adds an Android app** (unofficial): a PDF viewer first, with all of PDFCraft's tools.
-> **[Download the APK](https://github.com/blikkieskos/pdfcraft_android/releases/latest)** · [About the Android app](ANDROID.md) · [☕ Support the Android port on Ko-fi](https://ko-fi.com/epiblitikos)
+# PDFCraft for Android
+
+**Read, edit and convert PDFs on your phone. Private, offline, free.**<br>
+An unofficial Android port of [PDFCraft](https://github.com/PDFCraftTool/pdfcraft).
+
+[![Download APK](https://img.shields.io/github/v/release/blikkieskos/pdfcraft_android?label=Download%20APK&logo=android&logoColor=white&color=3DDC84&style=for-the-badge)](https://github.com/blikkieskos/pdfcraft_android/releases/latest)
+&nbsp;
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/epiblitikos)
+
+<img src="docs/android/banner.png" alt="PDFCraft for Android: home screen, PDF viewer, tools on the open document and PDF Studio" width="100%">
+
+</div>
+
+## What you get
+
+- 📖 **A real PDF viewer.** Open a PDF and read it full screen: pinch or tap +/− to zoom, search, highlight, draw and add text. It remembers where you stopped in each document.
+- 📲 **Open with PDFCraft.** Tap a PDF in Files, WhatsApp or Gmail and choose PDFCraft, or share a PDF to it.
+- ⭐ **Your default PDF app.** The home screen walks you through making PDFCraft the app that opens your PDFs.
+- 🧰 **130+ tools on the document you're reading.** Compress, sign, split, merge, rotate, watermark, OCR, convert to and from Word, Excel, PowerPoint and images. Tap the wrench and your document is already loaded.
+- ✏️ **PDF Studio.** Several edits in a row on one document, with undo, then save.
+- 🔒 **Private.** Everything runs on your phone. Your files are never uploaded.
+- 🌗 **Light and dark**, following your phone.
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/android/home-light.png" width="230" alt="Home screen in light mode"><br><sub>Home</sub></td>
+    <td align="center"><img src="docs/android/studio.png" width="230" alt="PDF Studio with the Tools button and zoom bar"><br><sub>PDF Studio</sub></td>
+    <td align="center"><img src="docs/android/studio-toolbox.png" width="230" alt="PDF Studio toolbox"><br><sub>Studio toolbox</sub></td>
+  </tr>
+</table>
+
+## Install
+
+1. On your phone, open the **[latest release](https://github.com/blikkieskos/pdfcraft_android/releases/latest)** and download the `.apk`.
+2. Open it. Android asks to allow installing apps from your browser or file manager: allow it.
+3. Google Play Protect may warn about an unknown developer. That's normal for apps from outside the Play Store: install anyway.
+
+Needs Android 7.0 or newer on a 64-bit phone (practically every phone since 2017). About 160 MB, because the conversion engines are built in so everything works offline. New versions install over the old one.
+
+**Make it your default PDF app:** use the card on the home screen. Android leaves the final choice to you: pick PDFCraft, then **Always**.
+
+## Good to know
+
+- English only for now, and no printing.
+- Word/Excel/PowerPoint conversions load a big engine and can be slow on phones with little memory.
+- OCR downloads its language data the first time you use it. Your documents never leave the phone.
+
+## Support
+
+This port is built and maintained in my spare time. If it's useful to you, you can buy me a coffee:
+
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/epiblitikos)
+
+Found a bug or have an idea? [Open an issue](https://github.com/blikkieskos/pdfcraft_android/issues).
+
+## Building it yourself
+
+See **[ANDROID.md](ANDROID.md)** for the toolchain, the build script and where the Android-specific code lives.
+
+## Credits and license
+
+Built on [PDFCraft](https://github.com/PDFCraftTool/pdfcraft) by PDFCraftTool. This is not an official PDFCraft app and is not affiliated with its team. Licensed under the [GNU AGPL-3.0](LICENSE), like PDFCraft; this repository is the complete source of the app.
+
+---
+
+<details>
+<summary><strong>Original PDFCraft README</strong> (the web app this is built on)</summary>
+
+
+# PDFCraft
 
 <div align="center">
   <img src="public/images/logo.png" alt="PDFCraft Logo" width="120" height="120" />
@@ -391,3 +459,5 @@ This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE)
 <div align="center">
   Built with ❤️ by the PDFCraft Team
 </div>
+
+</details>
