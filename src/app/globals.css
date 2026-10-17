@@ -307,3 +307,12 @@ select option {
 .scroll-smooth { scroll-behavior: smooth; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* Android app shell (html.app-android is set when NEXT_PUBLIC_PLATFORM=android) */
+.app-android {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-android body {
+  overscroll-behavior-y: none;
+}

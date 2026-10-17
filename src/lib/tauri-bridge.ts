@@ -18,6 +18,38 @@ export const isTauri = (): boolean => {
 };
 
 /**
+ * Tauri running on Android. The native dialogs there return content:// URIs instead of
+ * file system paths, so file I/O must go through the fs plugin rather than std::fs.
+ */
+export const isAndroidTauri = (): boolean => {
+  return isTauri() && typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent);
+};
+
+// Android IPC serializes payloads as JSON, so large files are written in chunks
+const ANDROID_WRITE_CHUNK_SIZE = 2 * 1024 * 1024;
+
+async function writeAndroidFile(target: string, data: Blob | Uint8Array): Promise<void> {
+  const { open } = await import('@tauri-apps/plugin-fs');
+  const handle = await open(target, { write: true, create: true, truncate: true });
+  try {
+    const size = data instanceof Blob ? data.size : data.byteLength;
+    for (let offset = 0; offset < size; offset += ANDROID_WRITE_CHUNK_SIZE) {
+      const end = Math.min(offset + ANDROID_WRITE_CHUNK_SIZE, size);
+      const chunk =
+        data instanceof Blob
+          ? new Uint8Array(await data.slice(offset, end).arrayBuffer())
+          : data.subarray(offset, end);
+      let written = 0;
+      while (written < chunk.byteLength) {
+        written += await handle.write(chunk.subarray(written));
+      }
+    }
+  } finally {
+    await handle.close();
+  }
+}
+
+/**
  * Dynamically import Tauri invoke to avoid build-time issues in non-Tauri environments
  */
 async function getTauriInvoke() {
@@ -26,7 +58,8 @@ async function getTauriInvoke() {
 }
 
 export async function openFiles(filters: FileFilter[] = []): Promise<string[]> {
-  if (isTauri()) {
+  // On Android the WebView's own file chooser is used, since native picks are content:// URIs
+  if (isTauri() && !isAndroidTauri()) {
     const invoke = await getTauriInvoke();
     return invoke<string[]>('open_files', { filters });
   }
@@ -91,6 +124,15 @@ export function getFiltersForFilename(filename: string): FileFilter[] {
 }
 
 export async function saveFile(suggestedName: string, filters: FileFilter[] = []): Promise<string | null> {
+  if (isAndroidTauri()) {
+    // Opens the system "Save as" picker and returns a content:// URI
+    const { save } = await import('@tauri-apps/plugin-dialog');
+    return save({
+      defaultPath: suggestedName,
+      filters: filters.filter((f) => !f.extensions.includes('*')),
+    });
+  }
+
   if (isTauri()) {
     try {
       const invoke = await getTauriInvoke();
@@ -123,7 +165,7 @@ export async function saveFile(suggestedName: string, filters: FileFilter[] = []
 }
 
 export async function readFileBytes(path: string): Promise<Uint8Array> {
-  if (isTauri()) {
+  if (isTauri() && !browserFileStore.has(path)) {
     const invoke = await getTauriInvoke();
     const data = await invoke<number[]>('read_file', { path });
     return new Uint8Array(data);
@@ -139,6 +181,11 @@ export async function readFileBytes(path: string): Promise<Uint8Array> {
 }
 
 export async function writeFileBytes(path: string, data: Uint8Array): Promise<void> {
+  if (isAndroidTauri()) {
+    await writeAndroidFile(path, data);
+    return;
+  }
+
   if (isTauri()) {
     try {
       const invoke = await getTauriInvoke();
@@ -188,6 +235,15 @@ export async function saveBlobFile(
   const activeFilters =
     filters && filters.length > 0 ? filters : getFiltersForFilename(suggestedName);
 
+  if (isAndroidTauri()) {
+    const target = await saveFile(suggestedName, activeFilters);
+    if (!target) {
+      return false;
+    }
+    await writeAndroidFile(target, fileData);
+    return true;
+  }
+
   if (isTauri()) {
     const selectedPath = await saveFile(suggestedName, activeFilters);
     if (!selectedPath) {
@@ -229,6 +285,56 @@ export async function saveBlobFile(
     URL.revokeObjectURL(url);
   }, 1000);
   return true;
+}
+
+let androidDownloadInterceptorInstalled = false;
+let androidSaveQueue: Promise<unknown> = Promise.resolve();
+
+function saveAnchorDownloadOnAndroid(anchor: HTMLAnchorElement): void {
+  const name = anchor.getAttribute('download') || 'download';
+  // fetch() resolves the blob: URL immediately, so a later revokeObjectURL() is harmless
+  const blobPromise = fetch(anchor.href).then((res) => res.blob());
+  // One save dialog at a time when several downloads fire together
+  androidSaveQueue = androidSaveQueue
+    .then(() => blobPromise)
+    .then((blob) => saveBlobFile(blob, name))
+    .catch((err) => console.error('Failed to save download on Android:', err));
+}
+
+function isInterceptableDownload(anchor: HTMLAnchorElement): boolean {
+  return anchor.hasAttribute('download') && /^(blob|data):/i.test(anchor.href);
+}
+
+/**
+ * Android's WebView ignores <a download> clicks. Route blob:/data: downloads through
+ * the native save dialog instead. No-op outside the Android app.
+ */
+export function installAndroidDownloadInterceptor(): void {
+  if (androidDownloadInterceptorInstalled || !isAndroidTauri()) return;
+  androidDownloadInterceptorInstalled = true;
+
+  // Programmatic a.click(), including on anchors never attached to the document
+  const originalClick = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function (this: HTMLAnchorElement) {
+    if (isInterceptableDownload(this)) {
+      saveAnchorDownloadOnAndroid(this);
+      return;
+    }
+    originalClick.call(this);
+  };
+
+  // Real taps on download links rendered in the page
+  document.addEventListener(
+    'click',
+    (event) => {
+      const target = event.target as Element | null;
+      const anchor = target?.closest?.('a[download]') as HTMLAnchorElement | null;
+      if (!anchor || !isInterceptableDownload(anchor)) return;
+      event.preventDefault();
+      saveAnchorDownloadOnAndroid(anchor);
+    },
+    true
+  );
 }
 
 /**

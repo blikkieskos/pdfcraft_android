@@ -7,12 +7,17 @@ import { useTranslations } from 'next-intl';
 import { Shield, Lock, FileCheck, Github, Twitter, Mail, Globe } from 'lucide-react';
 import { type Locale, locales, localeConfig, getLocalizedPath } from '@/lib/i18n/config';
 import { saveLanguagePreference } from './LanguageSelector';
+import { IS_ANDROID_APP } from '@/lib/platform';
 
 export interface FooterProps {
   locale: Locale;
 }
 
-export const Footer: React.FC<FooterProps> = ({ locale }) => {
+// The Android app has no website footer
+export const Footer: React.FC<FooterProps> = (props) =>
+  IS_ANDROID_APP ? null : <WebFooter {...props} />;
+
+const WebFooter: React.FC<FooterProps> = ({ locale }) => {
   const t = useTranslations('common');
   const currentYear = new Date().getFullYear();
   const router = useRouter();

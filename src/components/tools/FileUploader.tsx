@@ -4,6 +4,8 @@ import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { UploadCloud, File, Plus, X, Lock, Loader2 } from 'lucide-react';
 import { isTauri } from '@/lib/tauri-bridge';
+import { IS_ANDROID_APP } from '@/lib/platform';
+import { takeToolFile } from '@/lib/app/file-handoff';
 
 export interface FileUploaderProps {
   /** Accepted file types (MIME types or extensions) */
@@ -355,6 +357,17 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
   /**
    * Handle file input change
    */
+  // Android app: a document sent over from the viewer ("open in tool") loads straight away
+  useEffect(() => {
+    if (!IS_ANDROID_APP || disabled) return;
+    const handedOver = takeToolFile();
+    if (handedOver) {
+      handleFiles([handedOver]);
+    }
+    // Only on mount: the hand-over is meant for the uploader the tool shows first
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -518,7 +531,18 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     };
   }, []);
 
-  const baseStyles = `
+  // The Android app uses a compact one-row card: it stays on screen next to loaded files
+  const baseStyles = IS_ANDROID_APP
+    ? `
+    relative flex items-center gap-3
+    w-full p-4
+    border-2 border-dashed
+    rounded-2xl
+    transition-all duration-300
+    cursor-pointer
+    group
+  `
+    : `
     relative flex flex-col items-center justify-center
     w-full min-h-[250px] p-10
     border-2 border-dashed
@@ -527,6 +551,15 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
     cursor-pointer
     group
   `;
+
+  // e.g. "PDF, JPG, JPEG, PNG, WEBP…" (MIME types like image/* are left out)
+  const acceptedExtensions = (accept || [])
+    .filter((type) => type.startsWith('.'))
+    .map((type) => type.slice(1).toUpperCase());
+  const formatsSummary =
+    acceptedExtensions.length > 5
+      ? `${acceptedExtensions.slice(0, 5).join(', ')}…`
+      : acceptedExtensions.join(', ');
 
   // Dynamic styles based on state
   const stateStyles = disabled
@@ -574,6 +607,28 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-[hsl(var(--color-primary)/0.03)] rounded-full blur-3xl" />
       </div>
 
+      {IS_ANDROID_APP ? (
+        <>
+          <div className="shrink-0 rounded-xl bg-[hsl(var(--color-primary)/0.1)] p-2.5 text-[hsl(var(--color-primary))]">
+            <UploadCloud className="w-6 h-6" aria-hidden="true" />
+          </div>
+          {/* Tool-specific descriptions talk about drag and drop, which a phone can't do */}
+          <div className="min-w-0 flex-1 text-left">
+            <p className="font-semibold leading-snug text-[hsl(var(--color-foreground))]">
+              {label || t('buttons.upload')}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-[hsl(var(--color-muted-foreground))]">
+              {[
+                t.has('fileUploader.tapToSelect') ? t('fileUploader.tapToSelect') : t('fileUploader.dragDrop'),
+                formatsSummary,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          </div>
+        </>
+      ) : (
+        <>
       {/* Upload icon */}
       <div className={`
         mb-6 p-4 rounded-full transition-transform duration-300 group-hover:scale-110
@@ -612,6 +667,8 @@ export const FileUploader: React.FC<FileUploaderProps> = ({
             Max files: {maxFiles}
           </span>
         </div>
+      )}
+        </>
       )}
 
       {/* Drag overlay */}

@@ -16,7 +16,8 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
 const sizeStyles: Record<CardSize, string> = {
   sm: 'p-3',
   md: 'p-4',
-  lg: 'p-6',
+  // Less padding on phones, where every pixel of width counts
+  lg: 'p-4 sm:p-6',
 };
 
 const variantStyles: Record<CardVariant, string> = {

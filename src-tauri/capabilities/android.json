@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "android-file-save",
+  "description": "Lets the Android app write files to the location the user picks in the save dialog",
+  "platforms": ["android"],
+  "windows": ["main"],
+  "permissions": [
+    "fs:allow-open",
+    "fs:allow-write"
+  ]
+}

@@ -411,16 +411,16 @@ export function MergePDFTool({ className = '' }: MergePDFToolProps) {
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
                 className={`
-                  flex items-center gap-3 p-3 rounded-[var(--radius-md)] border
+                  flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-[var(--radius-md)] border
                   transition-all duration-200
                   ${draggedIndex === index ? 'opacity-50 border-dashed' : ''}
                   ${dragOverIndex === index ? 'border-[hsl(var(--color-primary))] bg-[hsl(var(--color-primary)/0.05)]' : 'border-[hsl(var(--color-border))]'}
                   ${!isProcessing ? 'cursor-grab hover:bg-[hsl(var(--color-muted)/0.5)]' : ''}
                 `}
               >
-                {/* Drag Handle */}
-                <div 
-                  className="flex-shrink-0 text-[hsl(var(--color-muted-foreground))]"
+                {/* Drag Handle (touch screens reorder with the arrow buttons instead) */}
+                <div
+                  className="hidden sm:block flex-shrink-0 text-[hsl(var(--color-muted-foreground))]"
                   aria-hidden="true"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -443,10 +443,11 @@ export function MergePDFTool({ className = '' }: MergePDFToolProps) {
 
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[hsl(var(--color-foreground))] truncate">
+                    {file.file.name}
+                  </p>
+                  {/* Type badge sits with the size so the name gets the full width */}
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-[hsl(var(--color-foreground))] truncate">
-                      {file.file.name}
-                    </p>
                     {(() => {
                       const cat = getFileTypeCategory(file.file);
                       const fileExt = file.file.name.split('.').pop()?.toUpperCase() || '';
@@ -491,10 +492,10 @@ export function MergePDFTool({ className = '' }: MergePDFToolProps) {
                         </span>
                       );
                     })()}
+                    <p className="text-xs text-[hsl(var(--color-muted-foreground))]">
+                      {formatSize(file.file.size)}
+                    </p>
                   </div>
-                  <p className="text-xs text-[hsl(var(--color-muted-foreground))]">
-                    {formatSize(file.file.size)}
-                  </p>
                 </div>
 
                 {/* Reorder Buttons */}

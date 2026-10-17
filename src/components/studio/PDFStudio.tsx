@@ -24,6 +24,8 @@ import {
   Loader2,
   Plus,
   Files,
+  ArrowLeft,
+  Wrench,
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { Button } from '@/components/ui/Button';
@@ -41,6 +43,9 @@ import {
 import { saveBlobFile, isTauri, getSystemPrinters, printPdfFile } from '@/lib/tauri-bridge';
 import { withBasePath } from '@/lib/utils/path';
 import { getToolContent, type Locale } from '@/config/tool-content';
+import { IS_ANDROID_APP } from '@/lib/platform';
+import { takeToolFile } from '@/lib/app/file-handoff';
+import { PdfJsZoomBar, usePdfJsViewer } from '@/components/app/PdfJsZoomBar';
 
 interface PDFStudioProps {
   locale?: string;
@@ -111,6 +116,8 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
   // Studio UI states
   const [activeToolId, setActiveToolId] = useState<StudioToolId | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
+  // Phones: the toolbox is a slide-over panel instead of a permanent sidebar
+  const [isMobileToolboxOpen, setIsMobileToolboxOpen] = useState<boolean>(false);
   const [isApplying, setIsApplying] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
   const [isExportMenuOpen, setIsExportMenuOpen] = useState<boolean>(false);
@@ -124,6 +131,7 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const multiFileInputRef = useRef<HTMLInputElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const viewer = usePdfJsViewer(iframeRef, pdfUrl);
 
   // Restore sidebar collapse state
   useEffect(() => {
@@ -211,6 +219,17 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
     },
     [handleAddFiles]
   );
+
+  // Android app: a document sent over from the viewer opens right away
+  useEffect(() => {
+    if (!IS_ANDROID_APP) return;
+    const handedOver = takeToolFile();
+    if (handedOver) {
+      handleAddFiles([handedOver]);
+    }
+    // Only on arrival; the hand-over is a one-off
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSelectDocument = useCallback((docId: string) => {
     setActiveDocId(docId);
@@ -535,19 +554,25 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
   }, [handleUndo, handleRedo, handleExport, handlePrint]);
 
   return (
-    <div className={`h-screen flex flex-col bg-[hsl(var(--color-background))] select-none ${className}`.trim()}>
+    <div className={`h-[100dvh] flex flex-col bg-[hsl(var(--color-background))] select-none ${className}`.trim()}>
       {/* Studio Header (Compact Toolbar - 52px) */}
-      <header className="h-[52px] flex-shrink-0 border-b border-[hsl(var(--color-border))] bg-[hsl(var(--color-card)/0.9)] backdrop-blur-md px-4 flex items-center justify-between z-30 relative">
+      <header className="h-[52px] flex-shrink-0 border-b border-[hsl(var(--color-border))] bg-[hsl(var(--color-card)/0.9)] backdrop-blur-md px-2 sm:px-4 gap-2 flex items-center justify-between z-30 relative">
         {/* Left: Brand & File Info */}
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <Link
             href={`/${locale}`}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity shrink-0"
             title={isZh ? '返回首页' : 'Home'}
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-accent))] shadow-sm">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
+            {IS_ANDROID_APP ? (
+              <span className="flex h-9 w-9 items-center justify-center rounded-full text-[hsl(var(--color-foreground))]">
+                <ArrowLeft className="h-5 w-5" aria-label="Back" />
+              </span>
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[hsl(var(--color-primary))] to-[hsl(var(--color-accent))] shadow-sm">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+            )}
             <span className="font-bold text-sm tracking-tight hidden sm:inline text-[hsl(var(--color-foreground))]">
               PDFCraft <span className="text-[hsl(var(--color-primary))] font-medium">Studio</span>
             </span>
@@ -555,7 +580,7 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
 
           {file && (
             <>
-              <span className="text-[hsl(var(--color-border))] shrink-0">|</span>
+              <span className="hidden sm:inline text-[hsl(var(--color-border))] shrink-0">|</span>
               <div className="flex items-center gap-2">
                 {/* History Badge button */}
                 <button
@@ -569,7 +594,10 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
                   title={isZh ? '查看操作历史记录' : 'View Action History'}
                 >
                   <History className="w-2.5 h-2.5" />
-                  <span>+{historyStack.length} {isZh ? '操作' : 'action(s)'}</span>
+                  <span>
+                    +{historyStack.length}
+                    <span className="hidden sm:inline"> {isZh ? '操作' : 'action(s)'}</span>
+                  </span>
                 </button>
               </div>
             </>
@@ -614,19 +642,24 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
         )}
 
         {/* Right: Actions & Mode Switch */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {file ? (
             <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handlePrint}
-                title={isZh ? '打印文档 (Ctrl+P)' : 'Print Document (Ctrl+P)'}
-                className="h-8 px-2.5 text-xs gap-1.5"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">{isZh ? '打印' : 'Print'}</span>
-              </Button>
+              {/* Phones: still in the export menu; the Android app has no printing */}
+              {!IS_ANDROID_APP && (
+                <div className="hidden sm:block">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handlePrint}
+                    title={isZh ? '打印文档 (Ctrl+P)' : 'Print Document (Ctrl+P)'}
+                    className="h-8 px-2.5 text-xs gap-1.5"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{isZh ? '打印' : 'Print'}</span>
+                  </Button>
+                </div>
+              )}
 
               {/* Split Export Button */}
               <div className="relative inline-flex items-center shadow-sm rounded-lg">
@@ -638,7 +671,7 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
                   className="h-8 px-3 text-xs gap-1.5 rounded-r-none border-r border-white/20"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>{isZh ? '保存导出' : 'Save & Export'}</span>
+                  <span className="hidden sm:inline">{isZh ? '保存导出' : 'Save & Export'}</span>
                 </Button>
                 <button
                   type="button"
@@ -699,17 +732,21 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
                         </button>
                       </>
                     )}
-                    <div className="my-1 border-t border-[hsl(var(--color-border)/0.5)]" />
-                    <button
-                      onClick={() => {
-                        setIsExportMenuOpen(false);
-                        handlePrint();
-                      }}
-                      className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs text-left rounded-lg hover:bg-[hsl(var(--color-muted))] text-[hsl(var(--color-foreground))] font-medium transition-colors"
-                    >
-                      <Printer className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>{isZh ? '原生打印 (Ctrl+P)' : 'Native Print (Ctrl+P)'}</span>
-                    </button>
+                    {!IS_ANDROID_APP && (
+                      <>
+                        <div className="my-1 border-t border-[hsl(var(--color-border)/0.5)]" />
+                        <button
+                          onClick={() => {
+                            setIsExportMenuOpen(false);
+                            handlePrint();
+                          }}
+                          className="w-full flex items-center gap-2.5 px-2.5 py-2 text-xs text-left rounded-lg hover:bg-[hsl(var(--color-muted))] text-[hsl(var(--color-foreground))] font-medium transition-colors"
+                        >
+                          <Printer className="w-3.5 h-3.5 text-zinc-400" />
+                          <span>{isZh ? '原生打印 (Ctrl+P)' : 'Native Print (Ctrl+P)'}</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -871,16 +908,42 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
       <div className="flex-1 flex overflow-hidden relative">
         {file && pdfUrl ? (
           <>
-            {/* Left Rail Toolbar */}
-            <StudioLeftRail
-              activeToolId={activeToolId}
-              onSelectTool={setActiveToolId}
-              isCollapsed={isSidebarCollapsed}
-              onToggleCollapse={toggleSidebarCollapse}
-              disabled={isApplying}
-              locale={validLocale}
-              onQuickApply={(toolId) => handleApplyTool(toolId, {})}
-            />
+            {/* Left Rail Toolbar (tablet and up) */}
+            <div className="hidden md:flex">
+              <StudioLeftRail
+                activeToolId={activeToolId}
+                onSelectTool={setActiveToolId}
+                isCollapsed={isSidebarCollapsed}
+                onToggleCollapse={toggleSidebarCollapse}
+                disabled={isApplying}
+                locale={validLocale}
+                onQuickApply={(toolId) => handleApplyTool(toolId, {})}
+              />
+            </div>
+
+            {/* Phones: the same toolbox as a slide-over panel that closes once a tool is picked */}
+            {isMobileToolboxOpen && (
+              <div className="md:hidden absolute inset-0 z-40 flex" onClick={() => setIsMobileToolboxOpen(false)}>
+                <div className="flex h-full max-w-[88vw]" onClick={(e) => e.stopPropagation()}>
+                  <StudioLeftRail
+                    activeToolId={activeToolId}
+                    onSelectTool={(toolId) => {
+                      setActiveToolId(toolId);
+                      setIsMobileToolboxOpen(false);
+                    }}
+                    isCollapsed={false}
+                    onToggleCollapse={() => setIsMobileToolboxOpen(false)}
+                    disabled={isApplying}
+                    locale={validLocale}
+                    onQuickApply={(toolId) => {
+                      setIsMobileToolboxOpen(false);
+                      handleApplyTool(toolId, {});
+                    }}
+                  />
+                </div>
+                <div className="flex-1 bg-black/40" aria-hidden="true" />
+              </div>
+            )}
 
             {/* Center: Single Seamless PDF Viewer */}
             <main className="flex-1 relative bg-zinc-900/10 dark:bg-black/40 overflow-hidden">
@@ -890,6 +953,25 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
                 className="w-full h-full border-0 absolute inset-0"
                 title={file.name}
               />
+
+              {/* Phones: toolbox button and thumb-sized zoom (hidden while a tool's settings are open) */}
+              {!activeToolId && (
+                <PdfJsZoomBar
+                  viewer={viewer}
+                  className="md:hidden z-20"
+                  leading={
+                    <button
+                      type="button"
+                      onClick={() => setIsMobileToolboxOpen(true)}
+                      disabled={isApplying}
+                      className="flex h-11 items-center gap-1.5 rounded-full bg-[hsl(var(--color-primary))] px-4 text-sm font-semibold text-white active:opacity-90 disabled:opacity-50"
+                    >
+                      <Wrench className="h-4 w-4" aria-hidden="true" />
+                      {isZh ? '工具' : 'Tools'}
+                    </button>
+                  }
+                />
+              )}
 
               {/* Processing Overlay Feedback */}
               {isApplying && (

@@ -1,5 +1,8 @@
 # PDFCraft
 
+> 📱 **This fork adds an Android app** (unofficial): a PDF viewer first, with all of PDFCraft's tools.
+> **[Download the APK](https://github.com/blikkieskos/pdfcraft_android/releases/latest)** · [About the Android app](ANDROID.md) · [☕ Support the Android port on Ko-fi](https://ko-fi.com/epiblitikos)
+
 <div align="center">
   <img src="public/images/logo.png" alt="PDFCraft Logo" width="120" height="120" />
   <h1>Professional PDF Tools</h1>

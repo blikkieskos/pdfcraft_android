@@ -140,6 +140,7 @@
     },
     "fileUploader": {
       "dragDrop": "Drag and drop files here, or click to browse",
+    "tapToSelect": "Tap to choose files",
       "dropToUpload": "Drop files to upload",
       "support": "Support",
       "paste": "Paste (Ctrl+V)",

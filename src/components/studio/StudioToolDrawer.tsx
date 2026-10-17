@@ -754,7 +754,8 @@ export const StudioToolDrawer: React.FC<StudioToolDrawerProps> = ({
   ];
 
   return (
-    <div className="w-88 sm:w-96 border-l border-[hsl(var(--color-border))] bg-[hsl(var(--color-card)/0.96)] backdrop-blur-md flex flex-col flex-shrink-0 z-20 shadow-2xl transition-all animate-in slide-in-from-right-4 duration-200">
+    // Phones: bottom sheet over the document; tablet and up: drawer on the right
+    <div className="fixed inset-x-0 bottom-0 z-40 max-h-[75dvh] rounded-t-3xl border-t md:static md:z-20 md:max-h-none md:w-96 md:rounded-none md:border-t-0 md:border-l border-[hsl(var(--color-border))] bg-[hsl(var(--color-card)/0.96)] backdrop-blur-md flex flex-col flex-shrink-0 shadow-2xl transition-all animate-in slide-in-from-bottom-8 md:slide-in-from-right-4 duration-200">
       {/* Drawer Header */}
       <div className="h-12 border-b border-[hsl(var(--color-border))] px-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0">

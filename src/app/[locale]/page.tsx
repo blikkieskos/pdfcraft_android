@@ -3,6 +3,8 @@ import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { locales, type Locale } from '@/lib/i18n/config';
 import { generateHomeMetadata } from '@/lib/seo';
 import HomePageClient from './HomePageClient';
+import { AppHome } from '@/components/app/AppHome';
+import { IS_ANDROID_APP } from '@/lib/platform';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -45,6 +47,10 @@ export default async function HomePage({ params }: HomePageProps) {
     }
     return acc;
   }, {} as Record<string, { title: string; description: string }>);
+
+  if (IS_ANDROID_APP) {
+    return <AppHome locale={locale as Locale} localizedToolContent={localizedToolContent} />;
+  }
 
   return <HomePageClient locale={locale as Locale} localizedToolContent={localizedToolContent} />;
 }

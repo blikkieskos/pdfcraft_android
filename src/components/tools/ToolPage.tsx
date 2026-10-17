@@ -14,6 +14,7 @@ import { Home, ChevronRight } from 'lucide-react';
 import { FavoriteButton } from '@/components/ui/FavoriteButton';
 import { useMemo } from 'react';
 import { sanitizeHtml } from '@/lib/utils/html-sanitizer';
+import { IS_ANDROID_APP } from '@/lib/platform';
 
 export interface ToolPageProps {
   /** Tool data */
@@ -54,6 +55,37 @@ export function ToolPage({ tool, content, locale, children, localizedRelatedTool
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+
+  // Android app: tool first, help text tucked away, no website chrome
+  if (IS_ANDROID_APP) {
+    return (
+      <ToolProvider toolSlug={tool.slug} toolName={toolDisplayName}>
+        <div className="min-h-screen flex flex-col" data-testid="tool-page">
+          <Header
+            locale={locale as Locale}
+            title={toolDisplayName}
+            actions={<FavoriteButton toolId={tool.id} size="md" />}
+          />
+          <main id="main-content" className="flex-1" tabIndex={-1}>
+            <div className="max-w-7xl mx-auto px-3 pt-3 pb-8">
+              {content.metaDescription && (
+                <p
+                  className="mb-3 px-1 text-sm leading-snug text-[hsl(var(--color-muted-foreground))] line-clamp-2"
+                  data-testid="tool-page-subtitle"
+                >
+                  {content.metaDescription}
+                </p>
+              )}
+              <section data-testid="tool-page-interface" aria-label="Tool interface">
+                {children}
+              </section>
+              <AppAboutSection content={content} />
+            </div>
+          </main>
+        </div>
+      </ToolProvider>
+    );
+  }
 
   return (
     <ToolProvider toolSlug={tool.slug} toolName={toolDisplayName}>
@@ -127,6 +159,69 @@ export function ToolPage({ tool, content, locale, children, localizedRelatedTool
         <Footer locale={locale as Locale} />
       </div>
     </ToolProvider>
+  );
+}
+
+/**
+ * Android app: description, how-to and FAQ in one collapsed section
+ */
+function AppAboutSection({ content }: { content: ToolContent }) {
+  const t = useTranslations();
+  const sanitizedDescription = useMemo(() => sanitizeHtml(content.description || ''), [content.description]);
+  const steps = content.howToUse || [];
+  const faq = content.faq || [];
+  if (!content.description && steps.length === 0 && faq.length === 0) return null;
+
+  return (
+    <details
+      className="group mt-6 rounded-2xl border border-[hsl(var(--color-border))] bg-[hsl(var(--color-card))]"
+      data-testid="tool-page-about"
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3.5 text-sm font-semibold text-[hsl(var(--color-foreground))] [&::-webkit-details-marker]:hidden">
+        {t('tools.about')}
+        <ChevronRight className="h-4 w-4 text-[hsl(var(--color-muted-foreground))] transition-transform group-open:rotate-90" aria-hidden="true" />
+      </summary>
+      <div className="space-y-5 border-t border-[hsl(var(--color-border))] px-4 py-4 text-sm text-[hsl(var(--color-muted-foreground))]">
+        {sanitizedDescription && (
+          <div
+            className="prose prose-sm max-w-none text-[hsl(var(--color-muted-foreground))]"
+            dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
+          />
+        )}
+        {steps.length > 0 && (
+          <div>
+            <h2 className="mb-2 text-sm font-semibold text-[hsl(var(--color-foreground))]">{t('tools.howToUse')}</h2>
+            <ol className="space-y-2">
+              {steps.map((step) => (
+                <li key={step.step} className="flex gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--color-primary)/0.12)] text-xs font-bold text-[hsl(var(--color-primary))]">
+                    {step.step}
+                  </span>
+                  <span>
+                    <span className="font-medium text-[hsl(var(--color-foreground))]">{step.title}</span>
+                    {' '}
+                    {step.description}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+        {faq.length > 0 && (
+          <div>
+            <h2 className="mb-2 text-sm font-semibold text-[hsl(var(--color-foreground))]">{t('tools.faq')}</h2>
+            <dl className="space-y-3">
+              {faq.map((item, index) => (
+                <div key={index}>
+                  <dt className="font-medium text-[hsl(var(--color-foreground))]">{item.question}</dt>
+                  <dd className="mt-0.5">{item.answer}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+      </div>
+    </details>
   );
 }
 

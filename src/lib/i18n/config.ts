@@ -3,8 +3,20 @@
  * Defines supported locales and routing configuration
  */
 
-export const locales = ['en', 'ja', 'ko', 'es', 'fr', 'de', 'zh', 'zh-TW', 'pt', 'ar', 'it', 'id', 'vi', 'ro', 'pl'] as const;
-export type Locale = (typeof locales)[number];
+const allLocales = ['en', 'ja', 'ko', 'es', 'fr', 'de', 'zh', 'zh-TW', 'pt', 'ar', 'it', 'id', 'vi', 'ro', 'pl'] as const;
+export type Locale = (typeof allLocales)[number];
+
+// A build can ship a subset of languages via NEXT_PUBLIC_LOCALES (e.g. "en,de").
+// The Android app embeds every prerendered page, so it ships fewer.
+const enabledLocales = (process.env.NEXT_PUBLIC_LOCALES || '')
+  .split(',')
+  .map((code) => code.trim())
+  .filter(Boolean);
+
+export const locales: readonly Locale[] =
+  enabledLocales.length > 0
+    ? allLocales.filter((locale) => enabledLocales.includes(locale))
+    : allLocales;
 
 export const defaultLocale: Locale = 'en';
 

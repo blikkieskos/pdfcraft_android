@@ -2,6 +2,28 @@ import type { Metadata } from 'next';
 import '@/app/globals.css';
 
 import { siteConfig } from '@/config/site';
+import { IS_ANDROID_APP } from '@/lib/platform';
+
+// The Android app follows the system theme (live), so the web UI always matches the
+// native status/navigation bar area. The website keeps its manual light/dark toggle.
+const themeScript = IS_ANDROID_APP
+  ? `
+              try {
+                var darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                var applyTheme = function () { document.documentElement.classList.toggle('dark', darkQuery.matches); };
+                applyTheme();
+                darkQuery.addEventListener('change', applyTheme);
+              } catch (_) {}
+            `
+  : `
+              try {
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              } catch (_) {}
+            `;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -20,23 +42,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={IS_ANDROID_APP ? 'app-android' : undefined} suppressHydrationWarning>
       <head>
         <meta name="color-scheme" content="light dark" />
         <style dangerouslySetInnerHTML={{ __html: 'html{scrollbar-gutter:stable}' }} />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark')
-                } else {
-                  document.documentElement.classList.remove('dark')
-                }
-              } catch (_) {}
-            `,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script
           src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/coi-serviceworker.js`}
           data-coi="true"

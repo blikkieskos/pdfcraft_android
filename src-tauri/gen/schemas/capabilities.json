@@ -1,1 +1,1 @@
-{}
+{"android-file-save":{"identifier":"android-file-save","description":"Lets the Android app write files to the location the user picks in the save dialog","local":true,"windows":["main"],"permissions":["fs:allow-open","fs:allow-write"],"platforms":["android"]},"default":{"identifier":"default","description":"Default capability for the main window","local":true,"windows":["main"],"permissions":["core:default","dialog:default","fs:default"]}}

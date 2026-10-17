@@ -13,13 +13,26 @@ import { getToolContent } from '@/config/tool-content';
 import { getAllTools } from '@/config/tools';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { UpdateCheckButton } from '@/components/common/UpdateCheckButton';
+import { IS_ANDROID_APP } from '@/lib/platform';
+import { AppHeader } from './AppHeader';
 
 export interface HeaderProps {
   locale: Locale;
   showSearch?: boolean;
+  /** Android app only: title shown in the app bar */
+  title?: string;
+  /** Android app only: extra app bar buttons */
+  actions?: React.ReactNode;
 }
 
-export const Header: React.FC<HeaderProps> = ({ locale, showSearch = true }) => {
+export const Header: React.FC<HeaderProps> = (props) =>
+  IS_ANDROID_APP ? (
+    <AppHeader locale={props.locale} title={props.title} actions={props.actions} />
+  ) : (
+    <WebHeader {...props} />
+  );
+
+const WebHeader: React.FC<HeaderProps> = ({ locale, showSearch = true }) => {
   const t = useTranslations('common');
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
