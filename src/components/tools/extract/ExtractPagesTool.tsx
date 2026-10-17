@@ -176,6 +176,16 @@ export function ExtractPagesTool({ className = '' }: ExtractPagesToolProps) {
   }, []);
 
   /**
+   * Select every odd or even page in the document
+   */
+  const handleSelectParity = useCallback((parity: 'odd' | 'even') => {
+    if (totalPages <= 0) return;
+    setSelectedPages(new Set(parsePageSelection(parity, totalPages)));
+    setPageInput(parity);
+    setResult(null);
+  }, [totalPages]);
+
+  /**
    * Apply page input to selection
    */
   const handleApplyPageInput = useCallback(() => {
@@ -324,7 +334,13 @@ export function ExtractPagesTool({ className = '' }: ExtractPagesToolProps) {
               {tTools('extractPages.selectTitle') || 'Select Pages to Extract'}
               {selectedPages.size > 0 && ` (${selectedPages.size} selected)`}
             </h3>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={() => handleSelectParity('odd')} disabled={isProcessing}>
+                {tTools('extractPages.selectOdd') || 'Odd'}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => handleSelectParity('even')} disabled={isProcessing}>
+                {tTools('extractPages.selectEven') || 'Even'}
+              </Button>
               <Button variant="ghost" size="sm" onClick={handleSelectAll} disabled={isProcessing}>
                 {t('buttons.selectAll') || 'Select All'}
               </Button>
@@ -340,7 +356,7 @@ export function ExtractPagesTool({ className = '' }: ExtractPagesToolProps) {
               type="text"
               value={pageInput}
               onChange={(e) => setPageInput(e.target.value)}
-              placeholder="e.g., 1-5, 8, 10-15"
+              placeholder={tTools('extractPages.pageRangePlaceholder') || 'e.g., 1-5, 8, 10-15, odd'}
               disabled={isProcessing}
               className="flex-1 px-3 py-2 rounded-[var(--radius-md)] border border-[hsl(var(--color-border))] bg-[hsl(var(--color-background))] text-[hsl(var(--color-foreground))] placeholder:text-[hsl(var(--color-muted-foreground))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-primary))]"
             />

@@ -20,11 +20,13 @@ import zhMessages from '../../../messages/zh.json';
 import zhTW_Messages from '../../../messages/zh-TW.json';
 import ptMessages from '../../../messages/pt.json';
 import arMessages from '../../../messages/ar.json';
+import heMessages from '../../../messages/he.json';
 import idMessages from '../../../messages/id.json';
 import itMessages from '../../../messages/it.json';
 import viMessages from '../../../messages/vi.json';
 import roMessages from '../../../messages/ro.json';
 import plMessages from '../../../messages/pl.json';
+import csMessages from '../../../messages/cs.json';
 
 // Map of locale to messages
 const LOCALE_MESSAGES: Record<Locale, Record<string, unknown>> = {
@@ -38,11 +40,13 @@ const LOCALE_MESSAGES: Record<Locale, Record<string, unknown>> = {
   'zh-TW': zhTW_Messages,
   pt: ptMessages,
   ar: arMessages,
+  he: heMessages,
   id: idMessages,
   it: itMessages,
   vi: viMessages,
   ro: roMessages,
   pl: plMessages,
+  cs: csMessages,
 };
 
 /**

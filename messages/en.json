@@ -1639,9 +1639,11 @@
       "uploadLabel": "Upload PDF File",
       "uploadDescription": "Drag and drop a PDF file here, or click to browse.",
       "selectTitle": "Select Pages to Extract",
-      "selectHint": "Click pages to select them, or enter page numbers/ranges above.",
+      "selectHint": "Click pages to select them, or enter page numbers, ranges, odd, or even.",
       "pageRange": "Page Range",
-      "pageRangePlaceholder": "e.g., 1-5, 8, 10-12",
+      "pageRangePlaceholder": "e.g., 1-5, 8, 10-12, odd",
+      "selectOdd": "Odd",
+      "selectEven": "Even",
       "extractButton": "Extract Pages",
       "successMessage": "Pages extracted successfully! Click the download button to save your file."
     },
@@ -2547,7 +2549,14 @@
       "bold": "Bold",
       "italic": "Italic",
       "boldItalic": "Bold & Italic",
-      "setToCurrentPage": "Set to current page"
+      "setToCurrentPage": "Set to current page",
+      "removeAll": "Remove all",
+      "removeAllConfirm": "Remove all bookmarks? You can still save to download a PDF with no bookmarks.",
+      "removedAllHint": "All bookmarks removed. Save to download a PDF with no bookmarks.",
+      "removeSelected": "Remove selected ({count})",
+      "removeSelectedConfirm": "Remove {count, plural, one {# selected bookmark} other {# selected bookmarks}}? Their child bookmarks will also be removed.",
+      "selectForRemoval": "Select \"{title}\"",
+      "selectHint": "Tick checkboxes to remove several bookmarks at once. Shift+click selects a range."
     },
     "pageNumbers": {
       "uploadLabel": "Upload PDF File",

@@ -59,6 +59,23 @@ describe('message catalog integrity', () => {
     }
   });
 
+  it('keeps Czech messages structurally and token-compatible with English', () => {
+    const english = JSON.parse(readFileSync(join(messagesDir, 'en.json'), 'utf8')) as MessageCatalog;
+    const czech = JSON.parse(readFileSync(join(messagesDir, 'cs.json'), 'utf8')) as MessageCatalog;
+
+    expect(getCatalogShape(czech).sort()).toEqual(getCatalogShape(english).sort());
+
+    for (const [path, englishMessage] of getStringLeaves(english)) {
+      const czechMessage = getNestedValue(czech, path);
+
+      expect(czechMessage, path).toEqual(expect.any(String));
+      expect(getInterpolationArguments(czechMessage as string), path)
+        .toEqual(getInterpolationArguments(englishMessage));
+      expect(getRichTextTags(czechMessage as string), path)
+        .toEqual(getRichTextTags(englishMessage));
+    }
+  });
+
   it('defines edit PDF iframe patch labels for every locale', () => {
     const requiredKeys = [
       'common.editPdf.unnamedUser',

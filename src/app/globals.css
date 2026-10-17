@@ -280,6 +280,18 @@ select option {
 [dir="rtl"] .me-2 { margin-inline-end: 0.5rem; }
 [dir="rtl"] .ms-2 { margin-inline-start: 0.5rem; }
 
+/* Hebrew and RTL Language Support */
+/* Works on: Windows (Segoe UI), macOS (SF Pro Display/Arial), Linux (system fonts) */
+[lang="he"], [lang="ar"] {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'San Francisco', Arial, Helvetica, sans-serif;
+  direction: rtl;
+}
+
+/* Ensure Hebrew text in PDFs displays with proper fonts */
+.textLayer[dir="rtl"] span {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'San Francisco', Arial, Helvetica, sans-serif;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

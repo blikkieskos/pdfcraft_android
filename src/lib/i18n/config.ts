@@ -3,7 +3,7 @@
  * Defines supported locales and routing configuration
  */
 
-const allLocales = ['en', 'ja', 'ko', 'es', 'fr', 'de', 'zh', 'zh-TW', 'pt', 'ar', 'it', 'id', 'vi', 'ro', 'pl'] as const;
+const allLocales = ['en', 'ja', 'ko', 'es', 'fr', 'de', 'zh', 'zh-TW', 'pt', 'ar', 'he', 'it', 'id', 'vi', 'ro', 'pl', 'cs'] as const;
 export type Locale = (typeof allLocales)[number];
 
 // A build can ship a subset of languages via NEXT_PUBLIC_LOCALES (e.g. "en,de").
@@ -36,11 +36,13 @@ export const localeConfig: Record<Locale, {
   'zh-TW': { name: 'Chinese (Traditional)', nativeName: '繁體中文', direction: 'ltr', dateFormat: 'YYYY/MM/DD' },
   pt: { name: 'Portuguese', nativeName: 'Português', direction: 'ltr', dateFormat: 'DD/MM/YYYY' },
   ar: { name: 'Arabic', nativeName: 'العربية', direction: 'rtl', dateFormat: 'DD/MM/YYYY' },
+  he: { name: 'Hebrew', nativeName: 'עברית', direction: 'rtl', dateFormat: 'DD/MM/YYYY' },
   it: { name: 'Italian', nativeName: 'Italiano', direction: 'ltr', dateFormat: 'DD/MM/YYYY' },
   id: { name: 'Indonesian', nativeName: 'Bahasa Indonesia', direction: 'ltr', dateFormat: 'DD/MM/YYYY' },
   vi: { name: 'Vietnamese', nativeName: 'Tiếng Việt', direction: 'ltr', dateFormat: 'DD/MM/YYYY' },
   ro: { name: 'Romanian', nativeName: 'Română', direction: 'ltr', dateFormat: 'DD.MM.YYYY' },
   pl: { name: 'Polish', nativeName: 'Polski', direction: 'ltr', dateFormat: 'DD.MM.YYYY' },
+  cs: { name: 'Czech', nativeName: 'Čeština', direction: 'ltr', dateFormat: 'DD.MM.YYYY' },
 };
 
 // Keep locale-prefix handling in sync with the canonical locale registry. Sort
